@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  test_db_postgres:
+    container_name: test_db_postgres
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_PASSWORD=cdapassword
+      - POSTGRES_USER=cdausername
+      - POSTGRES_DB=test_db
+      - TZ=GMT
+      - PGTZ=GMT
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    volumes:
+      - ./init-sql:/docker-entrypoint-initdb.d

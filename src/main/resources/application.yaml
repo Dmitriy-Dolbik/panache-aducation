@@ -1,0 +1,13 @@
+quarkus:
+  datasource:
+    db-kind: postgresql
+    username: cdausername
+    password: cdapassword
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/test_db
+
+  hibernate-orm:
+    database:
+      generation:
+        ~: drop-and-create
+        create-schemas: true
