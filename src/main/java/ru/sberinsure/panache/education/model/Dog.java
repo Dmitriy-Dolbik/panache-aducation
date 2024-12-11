@@ -4,23 +4,25 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.Data;
-
-import java.time.LocalDate;
-import java.util.List;
-
 
 @Entity
 @Data
-public class Person {
+public class Dog {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String name;
-    private LocalDate birth;
-    private Status status;
 
-    @OneToMany(mappedBy = "owner")
-    private List<Dog> dogs;
+    private String name;
+
+    private String race;
+
+    private Double weight;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+    private Person owner;
 }

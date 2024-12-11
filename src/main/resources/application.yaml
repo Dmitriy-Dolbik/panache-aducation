@@ -11,3 +11,5 @@ quarkus:
       generation:
         ~: drop-and-create
         create-schemas: true
+    log:
+      sql: true
