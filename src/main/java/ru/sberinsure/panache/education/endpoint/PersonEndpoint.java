@@ -46,7 +46,7 @@ public class PersonEndpoint {
 
         personRepository.persist(personToSave);
 
-        return Response.created(URI.create("/persons/" + personToSave.getId())).build();
+        return Response.status(Response.Status.CREATED).entity(personToSave).build();
     }
 
     @POST
@@ -70,7 +70,7 @@ public class PersonEndpoint {
     @DELETE
     @Path("/delete")
     @Transactional
-    public Response deletePerson(@RestQuery("id") int id) {
+    public Response deletePerson(@RestQuery("id") Long id) {
         log.info("Receive DELETE '/api/v1/persons/delete'. Delete person with id {}", id);
 
         Person personToSave = personRepository.findById(id);
@@ -85,7 +85,7 @@ public class PersonEndpoint {
     @DELETE
     @Path("/delete/{id}")
     @Transactional
-    public Response deletePerson(Integer id) {
+    public Response deletePerson(long id) {
         log.info("Receive DELETE '/api/v1/persons/delete/{}'. Delete person with id {}", id, id);
 
         Person personToSave = personRepository.findById(id);
@@ -106,7 +106,7 @@ public class PersonEndpoint {
 
     @GET
     @Path("/get/{id}")
-    public Person getById(Integer id) {
+    public Person getById(long id) {
         log.info("Receive GET '/api/v1/persons/get/{id}'. Get person with id {}", id);
         return personRepository.findById(id);
     }
@@ -121,7 +121,7 @@ public class PersonEndpoint {
     @PUT
     @Path("/update/{id}")
     @Transactional//эта аннотация тут обязательно. Иначе изменения не появятся в БД.
-    public Person update(Integer id, PersonDTO personDTO) {
+    public Person update(long id, PersonDTO personDTO) {
         log.info("Receive PUT '/api/v1/persons/update/{id}'. Update person with Id {}", id);
         Person personFromDb = personRepository.findById(id);
         if (isNull(personFromDb)) {

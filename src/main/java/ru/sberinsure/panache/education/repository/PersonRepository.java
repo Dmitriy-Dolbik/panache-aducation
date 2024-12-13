@@ -1,7 +1,7 @@
 package ru.sberinsure.panache.education.repository;
 
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
-import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
+import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @ApplicationScoped
 @RequiredArgsConstructor
-public class PersonRepository implements PanacheRepositoryBase<Person, Integer> {
+public class PersonRepository implements PanacheRepository<Person> {
 
     public static final int PAGE_PERSONS_COUNT = 3;
 
