@@ -7,7 +7,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 public record DogNameWithOwnerName(String name, String ownerName) {
 
     /**
-     * С помощью @ProjectedFieldName("owner.name") мы говорим, что ownerName нужно вытащить из Person таблицы
+     * С помощью @ProjectedFieldName("owner.name") мы говорим, что ownerName нужно вытащить из PersonActiveRecordPattern таблицы
      *
      * @param name
      * @param ownerName

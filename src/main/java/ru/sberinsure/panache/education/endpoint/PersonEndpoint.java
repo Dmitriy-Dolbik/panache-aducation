@@ -11,13 +11,12 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jboss.resteasy.reactive.RestQuery;
-import ru.sberinsure.panache.education.model.Person;
+import ru.sberinsure.panache.education.model.DogActiveRecordPattern;
+import ru.sberinsure.panache.education.model.PersonActiveRecordPattern;
 import ru.sberinsure.panache.education.model.dto.PersonDTO;
 import ru.sberinsure.panache.education.model.projects.DogNameWithOwnerName;
 import ru.sberinsure.panache.education.model.projects.PersonName;
 import ru.sberinsure.panache.education.model.projects.PersonNamesWithDogsNames;
-import ru.sberinsure.panache.education.repository.DogRepository;
-import ru.sberinsure.panache.education.repository.PersonRepository;
 
 import java.net.URI;
 import java.text.MessageFormat;
@@ -30,21 +29,18 @@ import static java.util.Objects.isNull;
 @RequiredArgsConstructor
 public class PersonEndpoint {
 
-    private final PersonRepository personRepository;
-    private final DogRepository dogRepository;
-
     @POST
     @Path("/save")
     @Transactional
     public Response savePerson(PersonDTO personDTO) {
         log.info("Receive POST '/api/v1/persons/save'. Create new person {}", personDTO);
 
-        Person personToSave = new Person();
-        personToSave.setName(personDTO.getName());
-        personToSave.setBirth(personDTO.getBirth());
-        personToSave.setStatus(personDTO.getStatus());
+        PersonActiveRecordPattern personToSave = new PersonActiveRecordPattern();
+        personToSave.name = personDTO.getName();
+        personToSave.birth = personDTO.getBirth();
+        personToSave.status = personDTO.getStatus();
 
-        personRepository.persist(personToSave);
+        personToSave.persist();
 
         return Response.status(Response.Status.CREATED).entity(personToSave).build();
     }
@@ -55,29 +51,30 @@ public class PersonEndpoint {
     public Response savePersonAndFlush(PersonDTO personDTO) {
         log.info("Receive POST '/api/v1/persons/persistAndFlush'. Create and flush new person {}", personDTO);
 
-        Person personToSave = new Person();
-        personToSave.setName(personDTO.getName());
-        personToSave.setBirth(personDTO.getBirth());
-        personToSave.setStatus(personDTO.getStatus());
+        PersonActiveRecordPattern personToSave = new PersonActiveRecordPattern();
+        personToSave.name = personDTO.getName();
+        personToSave.birth = personDTO.getBirth();
+        personToSave.status = personDTO.getStatus();
 
-        personRepository.persistAndFlush(personToSave);
+        personToSave.persistAndFlush();
 
-        log.info("Person was persisted and flush");
+        log.info("PersonActiveRecordPattern was persisted and flush");
 
-        return Response.created(URI.create("/persons/" + personToSave.getId())).build();
+        return Response.created(URI.create("/persons/" + personToSave.id)).build();
     }
 
     @DELETE
     @Path("/delete")
     @Transactional
     public Response deletePerson(@RestQuery("id") Long id) {
-        log.info("Receive DELETE '/api/v1/persons/delete'. Delete person with id {}", id);
+        log.info("Receive DELETE '/api/v1/persons/delete?id=?'. Delete person with id {}", id);
 
-        Person personToSave = personRepository.findById(id);
+        PersonActiveRecordPattern personToSave = PersonActiveRecordPattern.findById(id);
         if (isNull(personToSave)) {
             throw new NotFoundException();
         }
-        personRepository.delete(personToSave);
+
+        personToSave.delete();
 
         return Response.ok().build();
     }
@@ -88,49 +85,49 @@ public class PersonEndpoint {
     public Response deletePerson(long id) {
         log.info("Receive DELETE '/api/v1/persons/delete/{}'. Delete person with id {}", id, id);
 
-        Person personToSave = personRepository.findById(id);
+        PersonActiveRecordPattern personToSave = PersonActiveRecordPattern.findById(id);
         if (isNull(personToSave)) {
             throw new NotFoundException();
         }
-        personRepository.delete(personToSave);
+        personToSave.delete();
 
         return Response.ok().build();
     }
 
     @GET
     @Path("/getAll")
-    public List<Person> getAllPeople() {
+    public List<PersonActiveRecordPattern> getAllPeople() {
         log.info("Receive GET '/api/v1/persons/getAll'. Get all persons");
-        return personRepository.listAll();
+        return PersonActiveRecordPattern.listAll();
     }
 
     @GET
     @Path("/get/{id}")
-    public Person getById(long id) {
+    public PersonActiveRecordPattern getById(long id) {
         log.info("Receive GET '/api/v1/persons/get/{id}'. Get person with id {}", id);
-        return personRepository.findById(id);
+        return PersonActiveRecordPattern.findById(id);
     }
 
     @GET
     @Path("/findByName/{name}")
-    public Person findByName(String name) {
+    public PersonActiveRecordPattern findByName(String name) {
         log.info("Receive GET '/api/v1/persons/findByName/{name}'. Get person by name {}", name);
-        return personRepository.findByName(name);
+        return PersonActiveRecordPattern.findByName(name);
     }
 
     @PUT
     @Path("/update/{id}")
     @Transactional//эта аннотация тут обязательно. Иначе изменения не появятся в БД.
-    public Person update(long id, PersonDTO personDTO) {
+    public PersonActiveRecordPattern update(long id, PersonDTO personDTO) {
         log.info("Receive PUT '/api/v1/persons/update/{id}'. Update person with Id {}", id);
-        Person personFromDb = personRepository.findById(id);
+        PersonActiveRecordPattern personFromDb = PersonActiveRecordPattern.findById(id);
         if (isNull(personFromDb)) {
             throw new NotFoundException("There is no person with id: %s".formatted(id));
         }
 
-        personFromDb.setName(personDTO.getName());
-        personFromDb.setBirth(personDTO.getBirth());
-        personFromDb.setStatus(personDTO.getStatus());
+        personFromDb.name = personDTO.getName();
+        personFromDb.birth = personDTO.getBirth();
+        personFromDb.status = personDTO.getStatus();
 
         //Не нужно ничего кроме сеттеров и транзакции. Не нужно ничего дополнительно вызывать в репозитории.
         //Изменения появятся в БД после завершения транзакции
@@ -142,7 +139,7 @@ public class PersonEndpoint {
     @Path("/count")
     public Long count() {
         log.info("Receive GET '/api/v1/persons/count'. Get persons count");
-        return personRepository.count();
+        return PersonActiveRecordPattern.count();
     }
 
     /**
@@ -153,9 +150,9 @@ public class PersonEndpoint {
      */
     @GET
     @Path("/getOnPage/{pageNumber}")
-    public List<Person> getOnPage(int pageNumber) {
+    public List<PersonActiveRecordPattern> getOnPage(int pageNumber) {
         log.info("Receive GET '/api/v1/persons/getOnPage/{pageNumber}'. Get persons on page {}", pageNumber);
-        return personRepository.getPersonsOnPage(pageNumber);
+        return PersonActiveRecordPattern.getPersonsOnPage(pageNumber);
     }
 
     /**
@@ -167,9 +164,9 @@ public class PersonEndpoint {
      */
     @GET
     @Path("/getOnPage")
-    public List<Person> getOnPage(@RestQuery("pageNumber") int pageNumber, @RestQuery("personsOnPage") int personsOnPage) {
+    public List<PersonActiveRecordPattern> getOnPage(@RestQuery("pageNumber") int pageNumber, @RestQuery("personsOnPage") int personsOnPage) {
         log.info(MessageFormat.format("Receive GET /api/v1/persons/getOnPage/pageNumber={0}&personsOnPage={1}. Get persons {1} on page {0}", pageNumber, personsOnPage));
-        return personRepository.getPersonsOnPage(pageNumber, personsOnPage);
+        return PersonActiveRecordPattern.getPersonsOnPage(pageNumber, personsOnPage);
     }
 
     /**
@@ -180,7 +177,7 @@ public class PersonEndpoint {
      * p1_0.name,
      * p1_0.status
      * from
-     * Person p1_0
+     * PersonActiveRecordPattern p1_0
      * offset
      * ? rows
      * fetch
@@ -194,43 +191,43 @@ public class PersonEndpoint {
      */
     @GET
     @Path("/getBetweenIndexes")
-    public List<Person> getBetweenIndexes(@RestQuery("fromIndex") int fromIndex, @RestQuery("toIndex") int toIndex) {
+    public List<PersonActiveRecordPattern> getBetweenIndexes(@RestQuery("fromIndex") int fromIndex, @RestQuery("toIndex") int toIndex) {
         log.info(MessageFormat.format("Receive GET /api/v1/persons/getBetweenIndexes/fromIndex={0}&toIndex={1}. Get persons from index {0} to index {1}", fromIndex, toIndex));
-        return personRepository.getPersonsBetweenIndexes(fromIndex, toIndex);
+        return PersonActiveRecordPattern.getPersonsBetweenIndexes(fromIndex, toIndex);
     }
 
     @GET
     @Path("/getAll/orderByName")
-    public List<Person> getAllOrderedByName() {
+    public List<PersonActiveRecordPattern> getAllOrderedByName() {
         log.info("Receive GET /api/v1/persons/getAll/orderByName. Get all persons ordered by name");
-        return personRepository.getAllOrderedByName();
+        return PersonActiveRecordPattern.getAllOrderedByName();
     }
 
     @GET
     @Path("/getAll/orderedByBirth")
-    public List<Person> getAllOrderedByBirth() {
+    public List<PersonActiveRecordPattern> getAllOrderedByBirth() {
         log.info("Receive GET /api/v1/persons/getAll/orderedByBirth. Get all persons ordered by birth");
-        return personRepository.getAllOrderedByBirth();
+        return PersonActiveRecordPattern.getAllOrderedByBirth();
     }
 
     @GET
     @Path("/getAllNames")
     public List<PersonName> getAllNames() {
         log.info("Receive GET /api/v1/persons/getAllNames. Get all names");
-        return personRepository.getAllNames();
+        return PersonActiveRecordPattern.getAllNames();
     }
 
     @GET
     @Path("/getAllPersonsNamesWithDogsNames")
     public List<PersonNamesWithDogsNames> getAllPersonNamesWithDogsNames() {
         log.info("Receive GET /api/v1/persons/getAllPersonsNamesWithDogsNames. Get all names with dogsNames");
-        return personRepository.getAllPersonNamesWithDogsNames();
+        return PersonActiveRecordPattern.getAllPersonNamesWithDogsNames();
     }
 
     @GET
     @Path("/getAllDogsNamesWithOwnerName")
     public List<DogNameWithOwnerName> getAllDogsNamesWithOwnerName() {
         log.info("Receive GET /api/v1/persons/getAllDogsNamesWithOwnerName. Get all dog names with owner names");
-        return dogRepository.getAllDogNameWithOwnerName();
+        return DogActiveRecordPattern.getAllDogNameWithOwnerName();
     }
 }
