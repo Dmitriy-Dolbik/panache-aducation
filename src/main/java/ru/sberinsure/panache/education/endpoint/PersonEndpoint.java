@@ -98,7 +98,7 @@ public class PersonEndpoint {
     @Path("/getAll")
     public List<PersonActiveRecordPattern> getAllPeople() {
         log.info("Receive GET '/api/v1/persons/getAll'. Get all persons");
-        return PersonActiveRecordPattern.listAll();
+        return PersonActiveRecordPattern.getAllList();
     }
 
     @GET
@@ -197,7 +197,7 @@ public class PersonEndpoint {
     }
 
     @GET
-    @Path("/getAll/orderByName")
+    @Path("/getAll/orderedByName")
     public List<PersonActiveRecordPattern> getAllOrderedByName() {
         log.info("Receive GET /api/v1/persons/getAll/orderByName. Get all persons ordered by name");
         return PersonActiveRecordPattern.getAllOrderedByName();
