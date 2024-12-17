@@ -23,7 +23,7 @@ public class Person {
     private LocalDate birth;
     private Status status;
 
-    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "owner")
     @JsonIgnore
     private List<Dog> dogs;
 
