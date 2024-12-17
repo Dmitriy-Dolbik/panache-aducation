@@ -1,6 +1,7 @@
 package ru.sberinsure.panache.education.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.quarkus.hibernate.orm.panache.Panache;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Page;
@@ -86,7 +87,6 @@ public class PersonActiveRecordPattern extends PanacheEntityBase {
 
     /**
      * Можно получить всех людей с dogs через HPQL, без entity manager.
-     * Но Hibernate все равно выполняет два запроса в БД
      */
     public static List<PersonNamesWithDogsNames> getAllPersonNamesWithDogsNames() {
 
@@ -115,29 +115,31 @@ public class PersonActiveRecordPattern extends PanacheEntityBase {
         //        Dog d1_0
         //    where
         //        d1_0.owner_id = any (?)
-        List<PersonActiveRecordPattern> personNamesWithDogsNames = find("SELECT p " +
-                "FROM PersonActiveRecordPattern p LEFT JOIN p.dogs d " +
-                "WHERE d.name is not null")
-                .list()
-                .stream()
-                .map(panacheEntityBase -> (PersonActiveRecordPattern) panacheEntityBase)
-                .toList();
 
-
-        List<PersonNamesWithDogsNames> personNamesWithDogsNames1 = new ArrayList<>();
-
-        for (PersonActiveRecordPattern personActiveRecordPattern : personNamesWithDogsNames) {
-            String personName = personActiveRecordPattern.name;
-            List<DogActiveRecordPattern> dogs = personActiveRecordPattern.dogs;
-
-            List<String> dogNames = new ArrayList<>();
-            for (DogActiveRecordPattern dogActiveRecordPattern : dogs) {
-                String dogName = dogActiveRecordPattern.name;
-                dogNames.add(dogName);
-            }
-            personNamesWithDogsNames1.add(new PersonNamesWithDogsNames(personName, dogNames));
-        }
-        return personNamesWithDogsNames1;
+        //Развернутая форма записи того, что идет ниже через стримы
+//        List<PersonActiveRecordPattern> personNamesWithDogsNames = find("SELECT p " +
+//                "FROM PersonActiveRecordPattern p LEFT JOIN p.dogs d " +
+//                "WHERE d.name is not null")
+//                .list()
+//                .stream()
+//                .map(panacheEntityBase -> (PersonActiveRecordPattern) panacheEntityBase)
+//                .toList();
+//
+//
+//        List<PersonNamesWithDogsNames> personNamesWithDogsNames1 = new ArrayList<>();
+//
+//        for (PersonActiveRecordPattern personActiveRecordPattern : personNamesWithDogsNames) {
+//            String personName = personActiveRecordPattern.name;
+//            List<DogActiveRecordPattern> dogs = personActiveRecordPattern.dogs;
+//
+//            List<String> dogNames = new ArrayList<>();
+//            for (DogActiveRecordPattern dogActiveRecordPattern : dogs) {
+//                String dogName = dogActiveRecordPattern.name;
+//                dogNames.add(dogName);
+//            }
+//            personNamesWithDogsNames1.add(new PersonNamesWithDogsNames(personName, dogNames));
+//        }
+//        return personNamesWithDogsNames1;
 
         //Так один запрос в БД:
         //И тут мы сталкнулись с тем, что сюда нельзя заинжектить Entity Manager
@@ -154,6 +156,20 @@ public class PersonActiveRecordPattern extends PanacheEntityBase {
 //                                .map(dog -> dog.name)
 //                                .collect(Collectors.toList())))
 //                .collect(Collectors.toList());
+
+        //Запись через native sql
+        String nativeQuery = "SELECT p.* " +
+                "FROM Person p LEFT JOIN Dog d ON p.id = d.owner_id " +
+                "WHERE d.name is not null";
+        List<PersonActiveRecordPattern> persons = Panache.getSession().createNativeQuery(nativeQuery, PersonActiveRecordPattern.class).list();
+        List<PersonNamesWithDogsNames> personNamesWithDogsNames = persons.stream()
+                .map(person -> new PersonNamesWithDogsNames(person.name,
+                        person.dogs.stream()
+                                .map(dog -> dog.name)
+                                .collect(Collectors.toList())))
+                .collect(Collectors.toList());
+
+        return personNamesWithDogsNames;
     }
 
     public static List<PersonActiveRecordPattern> getAllList() {
