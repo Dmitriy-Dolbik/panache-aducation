@@ -1,5 +1,6 @@
 package ru.sberinsure.panache.education.endpoint;
 
+import jakarta.persistence.PersistenceException;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -56,11 +57,14 @@ public class PersonEndpoint {
         personToSave.birth = personDTO.getBirth();
         personToSave.status = personDTO.getStatus();
 
-        personToSave.persistAndFlush();
-
-        log.info("PersonActiveRecordPattern was persisted and flush");
-
-        return Response.created(URI.create("/persons/" + personToSave.id)).build();
+        try {
+            personToSave.persistAndFlush();
+            log.info("PersonActiveRecordPattern was persisted and flush");
+            return Response.created(URI.create("/persons/" + personToSave.id)).build();
+        } catch (PersistenceException exception) {
+            log.error("Unable to save the user", exception);
+            return savePersonAndFlush(personDTO);
+        }
     }
 
     @DELETE
