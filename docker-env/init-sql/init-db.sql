@@ -13,6 +13,11 @@ create table Dog (
         owner_id bigint REFERENCES Person(id)
     );
 
+create table account (
+    id bigserial primary key,
+    value bigint
+);
+
 INSERT INTO person (birth, name, status) VALUES ('1995-09-12', 'Emily Brown', 0);
 INSERT INTO person (birth, name, status) VALUES ('1990-01-15', 'John Smith', 1);
 INSERT INTO person (birth, name, status) VALUES ('1985-03-22', 'Jessica Taylor', 0);
@@ -76,3 +81,5 @@ INSERT INTO dog (name, owner_id) VALUES ('Dog 3', 3);
 INSERT INTO dog (name, owner_id) VALUES ('Dog 1', 4);
 INSERT INTO dog (name, owner_id) VALUES ('Dog 2', 4);
 INSERT INTO dog (name, owner_id) VALUES ('Dog 3', 4);
+
+INSERT INTO account(id, value) VALUES (1, 0);

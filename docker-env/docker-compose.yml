@@ -2,7 +2,7 @@ version: "3"
 
 services:
   test_db_postgres:
-    container_name: test_db_postgres
+    container_name: panache-aducation_db_postgres
     image: postgres:15-alpine
     environment:
       - POSTGRES_PASSWORD=cdapassword
