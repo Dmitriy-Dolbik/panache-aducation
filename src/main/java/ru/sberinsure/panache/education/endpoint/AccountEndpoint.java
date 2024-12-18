@@ -1,5 +1,6 @@
 package ru.sberinsure.panache.education.endpoint;
 
+import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
@@ -12,7 +13,6 @@ import ru.sberinsure.panache.education.model.AccountActiveRecordPattern;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 import static java.util.Objects.isNull;
 
 @Path("/api/v1/persons")
@@ -53,7 +53,7 @@ public class AccountEndpoint {
     @Transactional
     public void increaseValue(long id) {
         log.info("findById = {}", id);
-        AccountActiveRecordPattern account = AccountActiveRecordPattern.findById(id);
+        AccountActiveRecordPattern account = AccountActiveRecordPattern.findById(id, LockModeType.PESSIMISTIC_WRITE);
         if (isNull(account)) {
             throw new NotFoundException("There is no account with id: %s".formatted(id));
         }
