@@ -22,6 +22,9 @@ import ru.sberinsure.panache.education.model.projects.PersonNamesWithDogsNames;
 import java.net.URI;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Objects.isNull;
 
@@ -137,6 +140,51 @@ public class PersonEndpoint {
         //Изменения появятся в БД после завершения транзакции
 
         return personFromDb;
+    }
+
+    @PUT
+    @Path("/updateWithMultipleThreads/{id}")
+    public PersonActiveRecordPattern updateWithMultipleThreads(long id, PersonDTO personDTO) throws InterruptedException {
+        log.info("Receive PUT '/api/v1/persons/update/{id}'. Update person with Id {}", id);
+
+
+        ExecutorService executor = Executors.newFixedThreadPool(100);
+
+        for (int i = 1; i <= 100; i++) {
+            executor.submit(new Work(i, personDTO, id));
+        }
+        executor.shutdown();
+        executor.awaitTermination(1, TimeUnit.DAYS);
+
+        return PersonActiveRecordPattern.findById(id);
+    }
+
+    public class Work implements Runnable {
+        private int index;
+        private PersonDTO personDTO;
+        private long id;
+
+        public Work(int index, PersonDTO personDTO, long id) {
+            this.index = index;
+            this.personDTO = personDTO;
+            this.id = id;
+        }
+
+        @Override
+        public void run() {
+            log.info("Run i = {}", index);
+            updatePerson(personDTO, index, id);
+        }
+    }
+
+    @Transactional
+    public void updatePerson(PersonDTO personDTO, int index, long id) {
+        PersonActiveRecordPattern personFromDb = PersonActiveRecordPattern.findById(id);
+        if (isNull(personFromDb)) {
+            throw new NotFoundException("There is no person with id: %s".formatted(id));
+        }
+
+        personFromDb.name = personDTO.getName() + index;
     }
 
     @GET
