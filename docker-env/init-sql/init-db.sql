@@ -15,7 +15,8 @@ create table Dog (
 
 create table account (
     id bigserial primary key,
-    value bigint
+    value bigint,
+    version integer
 );
 
 INSERT INTO person (birth, name, status) VALUES ('1995-09-12', 'Emily Brown', 0);
@@ -82,4 +83,4 @@ INSERT INTO dog (name, owner_id) VALUES ('Dog 1', 4);
 INSERT INTO dog (name, owner_id) VALUES ('Dog 2', 4);
 INSERT INTO dog (name, owner_id) VALUES ('Dog 3', 4);
 
-INSERT INTO account(id, value) VALUES (1, 0);
+INSERT INTO account(id, value, version) VALUES (1, 0, 0);

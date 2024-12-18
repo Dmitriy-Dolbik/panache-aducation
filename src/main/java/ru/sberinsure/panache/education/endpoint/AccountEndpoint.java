@@ -28,7 +28,7 @@ public class AccountEndpoint {
 
         ExecutorService executor = Executors.newFixedThreadPool(10);
 
-        for (int i = 1; i <= 1000; i++) {
+        for (int i = 1; i <= 10; i++) {
             executor.submit(new Work(id));
         }
         executor.shutdown();
@@ -53,7 +53,7 @@ public class AccountEndpoint {
     @Transactional
     public void increaseValue(long id) {
         log.info("findById = {}", id);
-        AccountActiveRecordPattern account = AccountActiveRecordPattern.findById(id, LockModeType.PESSIMISTIC_WRITE);
+        AccountActiveRecordPattern account = AccountActiveRecordPattern.findById(id, LockModeType.OPTIMISTIC);
         if (isNull(account)) {
             throw new NotFoundException("There is no account with id: %s".formatted(id));
         }
@@ -69,7 +69,7 @@ public class AccountEndpoint {
     public AccountActiveRecordPattern setZero(long id) {
         log.info("Receive PUT '/setZero/{id}'. Set zero value for account with Id {}", id);
 
-        AccountActiveRecordPattern account = AccountActiveRecordPattern.findById(id);
+        AccountActiveRecordPattern account = AccountActiveRecordPattern.findById(id, LockModeType.OPTIMISTIC);
         if (isNull(account)) {
             throw new NotFoundException("There is no account with id: %s".formatted(id));
         }
