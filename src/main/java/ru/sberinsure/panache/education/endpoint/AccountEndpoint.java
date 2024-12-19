@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.sberinsure.panache.education.model.AccountActiveRecordPattern;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +31,7 @@ public class AccountEndpoint {
 
         ExecutorService executor = Executors.newFixedThreadPool(10);
 
-        for (int i = 1; i <= 2; i++) {
+        for (int i = 1; i <= 100; i++) {
             executor.submit(new Work(id));
         }
         executor.shutdown();
@@ -53,25 +55,18 @@ public class AccountEndpoint {
 
     //Важно, чтобы тут не было аннотации @Transactional. В противном случае будет работать некорректно.
     public void increaseValueWithRetry(long id) {
-        final int maxRetries = 5; // Maximum number of retry attempts
+        LocalDateTime startTime = LocalDateTime.now();
         int attempt = 0;
-
-        while (attempt < maxRetries) {
+        while (true) {
             try {
                 attempt++;
                 increaseValue(id);
                 return; // Exit if successful
             } catch (OptimisticLockException exception) {
-                log.warn("OptimisticLockException occurred for account id: {}. Attempt {}/{}", id, attempt, maxRetries);
-                if (attempt >= maxRetries) {
+                Long millis = Duration.between(startTime, LocalDateTime.now()).toMillis();
+                log.warn("OptimisticLockException occurred for account id: {}. Millis from start {}, attempt = {}", id, millis, attempt);
+                if (millis >= 1000) {
                     throw exception; // Rethrow exception after max attempts
-                }
-                // Optionally, add a small delay before retrying
-                try {
-                    Thread.sleep(100); // Sleep for 100ms before retrying
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt(); // Restore interrupted status
-                    throw new RuntimeException("Thread was interrupted", ie);
                 }
             }
         }
