@@ -1,5 +1,6 @@
 package ru.sberinsure.panache.education.endpoint;
 
+import io.smallrye.common.annotation.Blocking;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.GET;
@@ -10,9 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.sberinsure.panache.education.model.AccountActiveRecordPattern;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import static java.util.Objects.isNull;
 
 @Path("/api/v1/persons")
@@ -22,32 +20,11 @@ public class AccountEndpoint {
 
     @PUT
     @Path("/increaseCount/{id}")
-    public AccountActiveRecordPattern increaseCount(long id) throws InterruptedException {
+    @Blocking
+    public AccountActiveRecordPattern increaseCount(long id) {
         log.info("Receive PUT '/increaseCount/{id}'. Increase value of account with Id {}", id);
-
-
-        ExecutorService executor = Executors.newFixedThreadPool(10);
-
-        for (int i = 1; i <= 1000; i++) {
-            executor.submit(new Work(id));
-        }
-        executor.shutdown();
-        executor.awaitTermination(1, TimeUnit.DAYS);
-
+        increaseValue(id);
         return AccountActiveRecordPattern.findById(id);
-    }
-
-    public class Work implements Runnable {
-        private final long id;
-
-        public Work(long id) {
-            this.id = id;
-        }
-
-        @Override
-        public void run() {
-            increaseValue(id);
-        }
     }
 
     @Transactional
