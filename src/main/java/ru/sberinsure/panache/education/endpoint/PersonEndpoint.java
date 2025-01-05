@@ -11,6 +11,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.jboss.resteasy.reactive.RestQuery;
 import ru.sberinsure.panache.education.model.DogActiveRecordPattern;
 import ru.sberinsure.panache.education.model.PersonActiveRecordPattern;
@@ -103,6 +104,14 @@ public class PersonEndpoint {
     public List<PersonActiveRecordPattern> getAllPeople() {
         log.info("Receive GET '/api/v1/persons/getAll'. Get all persons");
         return PersonActiveRecordPattern.getAllList();
+    }
+
+    @GET
+    @Path("/getIsolationLevel")
+    public int getIsolationLevel() {
+        Session session = PersonActiveRecordPattern.getSession();
+        int isolationLevel = session.doReturningWork(connection -> connection.getMetaData().getDefaultTransactionIsolation());
+        return isolationLevel;
     }
 
     @GET
